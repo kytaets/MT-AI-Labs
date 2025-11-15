@@ -20,18 +20,15 @@ class GeneticAlgorithm:
         self.X_train, self.Z_train = generate_training_data(num_samples=1000, interval_start=0, interval_end=1)
 
     def initialize_population(self):
-        """Ініціалізація популяції випадковими вагами."""
         return np.random.uniform(-1.0, 1.0, (self.pop_size, self.weights_size))
 
     def calculate_fitness(self, individual):
-        """Функція придатності: негативна Середньоквадратична Похибка (MSE)."""
         self.nn.set_weights(individual)
         predictions = self.nn.forward_pass(self.X_train)
         mse = np.mean((self.Z_train - predictions) ** 2)
         return -mse
 
     def selection_indices(self, fitnesses):
-        """Селекція (турнірна) та повернення індексів переможців."""
         k = 5
         selected_indices = []
         for _ in range(self.pop_size):
@@ -41,7 +38,6 @@ class GeneticAlgorithm:
         return np.array(selected_indices)
 
     def crossover(self, parent1, parent2):
-        """Кросинговер (одноточковий)."""
         if np.random.rand() < self.cross_rate:
             crossover_point = np.random.randint(1, self.weights_size - 1)
             child1 = np.concatenate((parent1[:crossover_point], parent2[crossover_point:]))
@@ -51,16 +47,14 @@ class GeneticAlgorithm:
             return parent1.copy(), parent2.copy()
 
     def mutate(self, individual):
-        """Мутація (додавання Гауссівського шуму)."""
         if np.random.rand() < self.mut_rate:
             mutation_indices = np.random.choice(self.weights_size, size=int(self.weights_size * 0.1), replace=False)
             individual[mutation_indices] += np.random.normal(0, 0.1, len(mutation_indices))
         return individual
 
     def run(self):
-        """Запуск генетичного алгоритму."""
         population = self.initialize_population()
-        mse_log = []  # Ініціалізація логу MSE
+        mse_log = []
 
         best_individual = None
         best_mse = float('inf')
@@ -72,7 +66,7 @@ class GeneticAlgorithm:
             current_best_individual = population[current_best_idx]
             current_best_mse = -fitnesses[current_best_idx]
 
-            mse_log.append(current_best_mse)  # Додавання поточного MSE до логу
+            mse_log.append(current_best_mse)
 
             if current_best_mse < best_mse:
                 best_mse = current_best_mse
@@ -100,5 +94,4 @@ class GeneticAlgorithm:
 
             population = np.array(new_population)
 
-        # ПОВЕРНЕННЯ ТРЬОХ ЗНАЧЕНЬ: ваги, фінальна MSE, лог MSE
         return best_individual, best_mse, mse_log
